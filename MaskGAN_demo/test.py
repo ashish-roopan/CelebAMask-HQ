@@ -5,6 +5,9 @@ import time
 import numpy as np
 from PIL import Image
 
+
+
+
 import torch
 from torchvision.utils import save_image
 
@@ -13,15 +16,7 @@ from data.data_loader import CreateDataLoader
 from models.models import create_model
 from data.base_dataset import BaseDataset, get_params, get_transform, normalize
 
-from ui.ui import Ui_Form
-from ui.mouse_event import GraphicsScene
-from ui_util.config import Config
 
-from PyQt5 import QtGui
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 
 
 
@@ -68,7 +63,3 @@ result = np.asarray(result[0,:,:,:], dtype=np.uint8)
 result= cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
 cv2.imwrite('gen.jpg',result)
 print(result)
-
-
-# # app = QApplication(sys.argv)
-# ex = Ex(model, opt)
