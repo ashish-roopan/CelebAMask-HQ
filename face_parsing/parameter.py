@@ -12,6 +12,10 @@ def get_parameters():
     parser.add_argument('--imsize', type=int, default=32)
     parser.add_argument('--version', type=str, default='parsenet')
 
+    #generate mask for single image
+    parser.add_argument('--single_image',  type=str2bool, default=False)
+
+
     # Training setting
     parser.add_argument('--total_step', type=int, default=1000000, help='how many times to update the generator')
     parser.add_argument('--batch_size', type=int, default=64)

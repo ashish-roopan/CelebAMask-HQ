@@ -1,4 +1,4 @@
-
+%%writefile tester.py
 import os
 import time
 import torch
@@ -47,7 +47,7 @@ class Tester(object):
     def __init__(self, config):
         # exact model and loss
         self.model = config.model
-
+        self.single_image=config.single_image
         # Model hyper-parameters
         self.imsize = config.imsize
         self.parallel = config.parallel
@@ -87,28 +87,46 @@ class Tester(object):
 
     def test(self):
         transform = transformer(True, True, True, False, self.imsize) 
-        test_paths = make_dataset(self.test_image_path)
-        make_folder(self.test_label_path, '')
-        make_folder(self.test_color_label_path, '') 
-        self.G.load_state_dict(torch.load(os.path.join(self.model_save_path, self.model_name)))
-        self.G.eval() 
-        batch_num = int(self.test_size / self.batch_size)
+        if self.single_image:
+            imgs=[]
+            img = transform(Image.open(self.test_image_path))
+            img2 = transform(Image.open('../MaskGAN_demo/samples/0.jpg'))
+            imgs.append(img)
+            imgs.append(img2)
 
-        for i in range(batch_num):
-            print (i)
-            imgs = []
-            for j in range(self.batch_size):
-                path = test_paths[i * self.batch_size + j]
-                img = transform(Image.open(path))
-                imgs.append(img)
             imgs = torch.stack(imgs) 
-            imgs = imgs.cuda()
+            imgs = img.cuda()
             labels_predict = self.G(imgs)
             labels_predict_plain = generate_label_plain(labels_predict)
             labels_predict_color = generate_label(labels_predict)
-            for k in range(self.batch_size):
-                cv2.imwrite(os.path.join(self.test_label_path, str(i * self.batch_size + k) +'.png'), labels_predict_plain[k])
-                save_image(labels_predict_color[k], os.path.join(self.test_color_label_path, str(i * self.batch_size + k) +'.png'))
+
+
+            filename=self.test_image_path.split('/')[-1].split('.')[1]
+            cv2.imwrite(os.path.join(self.test_label_path, filename,'_mask.png'), labels_predict_plain[0])
+            save_image(labels_predict_color[0], os.path.join(self.test_label_path, filename,'_color.png'))
+        else:
+            test_paths = make_dataset(self.test_image_path)
+            make_folder(self.test_label_path, '')
+            make_folder(self.test_color_label_path, '') 
+            self.G.load_state_dict(torch.load(os.path.join(self.model_save_path, self.model_name)))
+            self.G.eval() 
+            batch_num = int(self.test_size / self.batch_size)
+
+            for i in range(batch_num):
+                print (i)
+                imgs = []
+                for j in range(self.batch_size):
+                    path = test_paths[i * self.batch_size + j]
+                    img = transform(Image.open(path))
+                    imgs.append(img)
+                imgs = torch.stack(imgs) 
+                imgs = imgs.cuda()
+                labels_predict = self.G(imgs)
+                labels_predict_plain = generate_label_plain(labels_predict)
+                labels_predict_color = generate_label(labels_predict)
+                for k in range(self.batch_size):
+                    cv2.imwrite(os.path.join(self.test_label_path, str(i * self.batch_size + k) +'.png'), labels_predict_plain[k])
+                    save_image(labels_predict_color[k], os.path.join(self.test_color_label_path, str(i * self.batch_size + k) +'.png'))
 
     def build_model(self):
         self.G = unet().cuda()

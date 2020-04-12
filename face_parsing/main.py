@@ -1,5 +1,5 @@
 from parameter import *
-from trainer import Trainer
+# from trainer import Trainer
 from tester import Tester
 from data_loader import Data_Loader
 from torch.backends import cudnn
