@@ -29,8 +29,13 @@ def transformer(resize, totensor, normalize, centercrop, imsize):
     
     return transform
 
-def make_dataset(dir):
+def make_dataset(dir,single_image):
+    
+
     images = []
+    if single_image:
+      images.append(dir)
+      return images
     assert os.path.isdir(dir), '%s is not a valid directory' % dir
 
     f = dir.split('/')[-1].split('_')[-1]
@@ -85,26 +90,9 @@ class Tester(object):
         self.build_model()
 
     def test(self):
-        transform = transformer(True, True, True, False, self.imsize) 
-        if self.single_image:
-            imgs=[]
-            img = transform(Image.open(self.test_image_path))
-            img2 = transform(Image.open('../MaskGAN_demo/samples/0.jpg'))
-            imgs.append(img)
-            imgs.append(img2)
-
-            imgs = torch.stack(imgs) 
-            imgs = img.cuda()
-            labels_predict = self.G(imgs)
-            labels_predict_plain = generate_label_plain(labels_predict)
-            labels_predict_color = generate_label(labels_predict)
-
-
-            filename=self.test_image_path.split('/')[-1].split('.')[1]
-            cv2.imwrite(os.path.join(self.test_label_path, filename,'_mask.png'), labels_predict_plain[0])
-            save_image(labels_predict_color[0], os.path.join(self.test_label_path, filename,'_color.png'))
-        else:
-            test_paths = make_dataset(self.test_image_path)
+            transform = transformer(True, True, True, False, self.imsize) 
+            test_paths = make_dataset(self.test_image_path,self.single_image)
+            print('test_paths',test_paths)
             make_folder(self.test_label_path, '')
             make_folder(self.test_color_label_path, '') 
             self.G.load_state_dict(torch.load(os.path.join(self.model_save_path, self.model_name)))
@@ -118,6 +106,7 @@ class Tester(object):
                     path = test_paths[i * self.batch_size + j]
                     img = transform(Image.open(path))
                     imgs.append(img)
+                print('imgs',imgs)
                 imgs = torch.stack(imgs) 
                 imgs = imgs.cuda()
                 labels_predict = self.G(imgs)
@@ -134,3 +123,4 @@ class Tester(object):
 
         # print networks
         print(self.G)
+
